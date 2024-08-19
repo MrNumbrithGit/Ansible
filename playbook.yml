@@ -1,22 +1,16 @@
 ---
-- name: Display OS release information
-  hosts: all
-  become: yes
+- name: Run command to get OS release information
+  hosts: your_target_host
+  gather_facts: no
   tasks:
-    - name: Check for specific release files
-      command: ls /etc/*-release
-      register: release_files
+    - name: Get OS release information
+      command: cat /etc/*-release
+      register: os_release_info
 
-    - name: Run cat command on found release files
-      command: cat {{ item }}
-      with_items: "{{ release_files.stdout_lines }}"
-      register: os_release_output
-      ignore_errors: yes  # Ignore errors if some files are not readable
-
-    - name: Display OS release info
+    - name: Show OS release information
       debug:
-        msg: "{{ item.stdout }}"
-      with_items: "{{ os_release_output.results }}"
+        msg: "{{ os_release_info.stdout }}"
+
 
 
 
