@@ -1,15 +1,49 @@
 ---
-- name: Run command to get OS release information
+- name: Upgrade Debian 10 to Debian 11
   hosts: all
-  gather_facts: no
+  become: yes
   tasks:
-    - name: Get OS release information
-      command: lsb_release -a
-      register: os_release_info
+    - name: Ensure the system is up to date
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
 
-    - name: Show OS release information
+    - name: Backup current sources.list
+      command: cp /etc/apt/sources.list /etc/apt/sources.list.backup
+
+    - name: Update sources.list to Debian 11 repositories
+      copy:
+        dest: /etc/apt/sources.list
+        content: |
+          deb http://deb.debian.org/debian/ bullseye main contrib non-free
+          deb-src http://deb.debian.org/debian/ bullseye main contrib non-free
+          
+          deb http://deb.debian.org/debian/ bullseye-updates main contrib non-free
+          deb-src http://deb.debian.org/debian/ bullseye-updates main contrib non-free
+          
+          deb http://security.debian.org/ bullseye-security main contrib non-free
+          deb-src http://security.debian.org/ bullseye-security main contrib non-free
+
+    - name: Update package list
+      apt:
+        update_cache: yes
+
+    - name: Upgrade to Debian 11
+      apt:
+        upgrade: dist
+
+    - name: Reboot the system
+      reboot:
+        reboot_timeout: 1000
+
+    - name: Check the Debian version after reboot
+      command: lsb_release -a
+      register: lsb_release_output
+
+    - name: Display Debian version
       debug:
-        msg: "{{ os_release_info.stdout }}"
+        msg: "{{ lsb_release_output.stdout_lines }}"
 
 
 
