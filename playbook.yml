@@ -4,7 +4,7 @@
   gather_facts: no
   tasks:
     - name: Get OS release information
-      command: cat /etc/*-release
+      command: lsb_release -a
       register: os_release_info
 
     - name: Show OS release information
