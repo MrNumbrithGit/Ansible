@@ -1,11 +1,15 @@
 ---
-- name: Update APT package index
+- name: Display OS release information
   hosts: all
-  become: yes
+  become: yes  # Use become to run the command with elevated privileges if necessary
   tasks:
-    - name: Update APT package index
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600  # Update the cache if it's older than 1 hour
+    - name: Run cat command to get OS release info
+      command: cat /etc/*-release
+      register: os_release_output
+
+    - name: Display OS release info
+      debug:
+        msg: "{{ os_release_output.stdout }}"
+
 
 
