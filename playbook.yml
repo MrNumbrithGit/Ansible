@@ -4,10 +4,7 @@
   become: true
   tasks:
     - name: Backup current sources.list
-      copy:
-        src: /etc/apt/sources.list
-        dest: /etc/apt/sources.list.backup
-        backup: yes
+      command: cp /etc/apt/sources.list /etc/apt/sources.list.backup
 
     - name: Update APT sources.list to Debian 11
       replace:
