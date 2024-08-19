@@ -1,6 +1,6 @@
 ---
 - name: Run command to get OS release information
-  hosts: your_target_host
+  hosts: all
   gather_facts: no
   tasks:
     - name: Get OS release information
