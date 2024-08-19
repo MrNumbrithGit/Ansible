@@ -17,7 +17,7 @@
       replace:
         path: /etc/apt/sources.list
         regexp: '^deb http://security.debian.org/debian-security buster'
-        replace: 'deb http://security.debian.org/debian-security bullseye'
+        replace: 'deb http://security.debian.org/debian-security bullseye-security'
       notify: Update APT sources
 
     - name: Update APT sources.list to Debian 11 (updates)
@@ -33,6 +33,17 @@
         regexp: '^deb http://deb.debian.org/debian buster-backports'
         replace: 'deb http://deb.debian.org/debian bullseye-backports'
       notify: Update APT sources
+
+    - name: Add missing GPG keys for Google Cloud packages
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Add missing GPG key for Debian
+      apt_key:
+        keyserver: keyserver.ubuntu.com
+        id: C0BA5CE6DC6315A3
+        state: present
 
     - name: Update APT cache
       apt:
@@ -56,5 +67,6 @@
     - name: Update APT sources
       apt:
         update_cache: yes
+        cache_valid_time: 3600
         cache_valid_time: 3600
 
