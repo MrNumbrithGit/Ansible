@@ -1,15 +1,23 @@
 ---
 - name: Display OS release information
   hosts: all
-  become: yes  # Use become to run the command with elevated privileges if necessary
+  become: yes
   tasks:
-    - name: Run cat command to get OS release info
-      command: cat /etc/*-release
+    - name: Check for specific release files
+      command: ls /etc/*-release
+      register: release_files
+
+    - name: Run cat command on found release files
+      command: cat {{ item }}
+      with_items: "{{ release_files.stdout_lines }}"
       register: os_release_output
+      ignore_errors: yes  # Ignore errors if some files are not readable
 
     - name: Display OS release info
       debug:
-        msg: "{{ os_release_output.stdout }}"
+        msg: "{{ item.stdout }}"
+      with_items: "{{ os_release_output.results }}"
+
 
 
 
