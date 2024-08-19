@@ -1,15 +1,12 @@
 ---
-- name: Run command to get OS release information
-  hosts: your_target_host
-  gather_facts: no
+- name: Update APT package index
+  hosts: all
+  become: yes
   tasks:
-    - name: Get OS release information
-      command: cat /etc/*-release
-      register: os_release_info
-
-    - name: Show OS release information
-      debug:
-        msg: "{{ os_release_info.stdout }}"
+    - name: Update APT package index
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600  # Update the cache if it's older than 1 hour
 
 
 
