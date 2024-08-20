@@ -3,55 +3,10 @@
   hosts: all
   become: yes
   tasks:
-    - name: Ensure the system is up to date
-      apt:
-        update_cache: yes
-        upgrade: dist
-        autoremove: yes
-      ignore_errors: yes
-
-    - name: Backup current sources.list
-      command: cp /etc/apt/sources.list /etc/apt/sources.list.backup
-      ignore_errors: yes
-
-    - name: Update sources.list to Debian 11 repositories
-      copy:
-        dest: /etc/apt/sources.list
-        content: |
-          deb http://deb.debian.org/debian/ bullseye main contrib non-free
-          deb-src http://deb.debian.org/debian/ bullseye main contrib non-free
-          
-          deb http://deb.debian.org/debian/ bullseye-updates main contrib non-free
-          deb-src http://deb.debian.org/debian/ bullseye-updates main contrib non-free
-          
-          deb http://security.debian.org/ bullseye-security main contrib non-free
-          deb-src http://security.debian.org/ bullseye-security main contrib non-free
-      notify:
-        - Update package list
-
-    - name: Upgrade to Debian 11
-      apt:
-        upgrade: dist
-        dpkg_options: "force-confnew"
-      register: upgrade_result
-      ignore_errors: yes
-
-    - name: Reboot the system
-      reboot:
-        reboot_timeout: 1000
-      when: upgrade_result.changed
-
     - name: Check the Debian version after reboot
       command: lsb_release -a
       register: lsb_release_output
-      when: upgrade_result.changed
 
     - name: Display Debian version
       debug:
         msg: "{{ lsb_release_output.stdout_lines }}"
-      when: upgrade_result.changed
-
-  handlers:
-    - name: Update package list
-      apt:
-        update_cache: yes
