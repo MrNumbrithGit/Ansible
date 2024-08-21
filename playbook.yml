@@ -1,37 +1,66 @@
 ---
-- name: Upgrade Debian 10 to Debian 11
+- name: Upgrade Debian from 11 to 12
   hosts: all
   become: yes
   tasks:
-    - name: Backup current sources.list
-      command: cp /etc/apt/sources.list /etc/apt/sources.list.backup
-
-    - name: Update sources.list to Debian 11 repositories
-      copy:
-        dest: /etc/apt/sources.list
-        content: |
-          deb http://deb.debian.org/debian/ bullseye main contrib non-free
-          deb-src http://deb.debian.org/debian/ bullseye main contrib non-free
-
-          deb https://deb.debian.org/debian-security bullseye-security main contrib
-          deb-src https://deb.debian.org/debian-security bullseye-security main contrib
-
     - name: Update package list
       apt:
         update_cache: yes
-
-    - name: Upgrade to Debian 11
+    
+    - name: Upgrade all packages
       apt:
         upgrade: dist
-
+        autoremove: yes
+    
+    - name: Backup sources.list files
+      command: cp /etc/apt/sources.list /etc/apt/sources.list.bak
+      ignore_errors: yes
+    
+    - name: Backup sources.list.d files
+      command: cp -r /etc/apt/sources.list.d /etc/apt/sources.list.d.bak
+      ignore_errors: yes
+    
+    - name: Replace Bullseye with Bookworm in sources.list
+      replace:
+        path: /etc/apt/sources.list
+        regexp: 'buster'
+        replace: 'bookworm'
+    
+    - name: Replace Bullseye with Bookworm in sources.list.d files
+      replace:
+        path: "{{ item }}"
+        regexp: 'buster'
+        replace: 'bookworm'
+      with_fileglob:
+        - /etc/apt/sources.list.d/*.list
+    
+    - name: Add non-free and non-free-firmware repositories if upgrading to Bookworm or later
+      lineinfile:
+        path: /etc/apt/sources.list
+        line: 'deb https://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware'
+        state: present
+        validate: 'grep -q "^deb https://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" %s'
+    
+    - name: Clean package cache
+      apt:
+        autoclean: yes
+    
+    - name: Update package list again
+      apt:
+        update_cache: yes
+    
+    - name: Perform full upgrade
+      apt:
+        upgrade: dist
+        autoremove: yes
+    
+    - name: Remove packages no longer needed
+      apt:
+        autoremove: yes
+    
     - name: Reboot the system
       reboot:
-        reboot_timeout: 1000
-
-    - name: Check the Debian version after reboot
-      command: lsb_release -a
-      register: lsb_release_output
-
-    - name: Display Debian version
-      debug:
-        msg: "{{ lsb_release_output.stdout_lines }}"
+        msg: "Rebooting after upgrade to Debian 12."
+        connect_timeout: 5
+        reboot_timeout: 300
+        test_command: whoami
