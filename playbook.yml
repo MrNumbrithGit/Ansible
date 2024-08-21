@@ -1,66 +1,68 @@
 ---
-- name: Upgrade Debian from 11 to 12
+- name: Upgrade Debian to the next release
   hosts: all
   become: yes
   tasks:
-    - name: Update package list
+    - name: Ensure the system is up-to-date
       apt:
         update_cache: yes
-    
-    - name: Upgrade all packages
-      apt:
         upgrade: dist
-        autoremove: yes
-    
-    - name: Backup sources.list files
-      command: cp /etc/apt/sources.list /etc/apt/sources.list.bak
-      ignore_errors: yes
-    
-    - name: Backup sources.list.d files
-      command: cp -r /etc/apt/sources.list.d /etc/apt/sources.list.d.bak
-      ignore_errors: yes
-    
-    - name: Replace Bullseye with Bookworm in sources.list
-      replace:
-        path: /etc/apt/sources.list
-        regexp: 'buster'
-        replace: 'bookworm'
-    
-    - name: Replace Bullseye with Bookworm in sources.list.d files
-      replace:
-        path: "{{ item }}"
-        regexp: 'buster'
-        replace: 'bookworm'
-      with_fileglob:
-        - /etc/apt/sources.list.d/*.list
-    
-    - name: Add non-free and non-free-firmware repositories if upgrading to Bookworm or later
+
+    - name: Backup current sources.list and sources.list.d
+      command: >
+        cp /etc/apt/sources.list /etc/apt/sources.list.backup &&
+        cp -r /etc/apt/sources.list.d /etc/apt/sources.list.d.backup
+
+    - name: Update sources.list to the next release repositories
+      copy:
+        dest: /etc/apt/sources.list
+        content: |
+          deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware
+          deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware
+
+          deb https://deb.debian.org/debian-security bookworm-security main contrib non-free
+          deb-src https://deb.debian.org/debian-security bookworm-security main contrib non-free
+
+    - name: Update additional APT repositories to the next release
       lineinfile:
-        path: /etc/apt/sources.list
-        line: 'deb https://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware'
-        state: present
-        validate: 'grep -q "^deb https://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" %s'
-    
+        path: "{{ item }}"
+        regexp: '^deb '
+        line: "{{ item_line }}"
+      loop:
+        - /etc/apt/sources.list.d/cloud-sdk.list
+        - /etc/apt/sources.list.d/google-cloud-ops-agent.list
+        - /etc/apt/sources.list.d/google-cloud-packages-archive-keyring.list
+      vars:
+        item_line: "{{ item | regex_replace('buster', 'bookworm') }}"
+
     - name: Clean package cache
       apt:
         autoclean: yes
-    
-    - name: Update package list again
+
+    - name: Update package list
       apt:
         update_cache: yes
-    
-    - name: Perform full upgrade
+
+    - name: Upgrade to the next release
       apt:
         upgrade: dist
-        autoremove: yes
-    
-    - name: Remove packages no longer needed
+
+    - name: Perform full upgrade
+      apt:
+        full_upgrade: yes
+
+    - name: Remove unnecessary packages
       apt:
         autoremove: yes
-    
+
     - name: Reboot the system
       reboot:
-        msg: "Rebooting after upgrade to Debian 12."
-        connect_timeout: 5
-        reboot_timeout: 300
-        test_command: whoami
+        reboot_timeout: 1000
+
+    - name: Check the Debian version after reboot
+      command: lsb_release -a
+      register: lsb_release_output
+
+    - name: Display Debian version
+      debug:
+        msg: "{{ lsb_release_output.stdout_lines }}"
