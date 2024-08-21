@@ -1,28 +1,12 @@
 ---
-- name: Upgrade Debian to the next release
+- name: Upgrade Debian 10 to Debian 11
   hosts: all
   become: yes
   tasks:
-    - name: Ensure the system is up-to-date
-      apt:
-        update_cache: yes
-        upgrade: dist
-
     - name: Backup current sources.list
       command: cp /etc/apt/sources.list /etc/apt/sources.list.backup
-      ignore_errors: yes  # Ignore errors if the file does not exist
 
-    - name: Create backup directory for sources.list.d
-      file:
-        path: /etc/apt/sources.list.d.backup
-        state: directory
-
-    - name: Backup sources.list.d directory
-      command: >
-        cp -r /etc/apt/sources.list.d/* /etc/apt/sources.list.d.backup/
-      ignore_errors: yes  # Ignore errors if the directory does not exist
-
-    - name: Update sources.list to the next release repositories
+    - name: Update sources.list to Debian 11 repositories
       copy:
         dest: /etc/apt/sources.list
         content: |
@@ -32,36 +16,31 @@
           deb https://deb.debian.org/debian-security bookworm-security main contrib non-free
           deb-src https://deb.debian.org/debian-security bookworm-security main contrib non-free
 
-    - name: Update additional APT repositories to the next release
-      lineinfile:
-        path: "{{ item }}"
-        regexp: '^deb '
-        line: "{{ item | regex_replace('buster', 'bookworm') }}"
-      loop:
-        - /etc/apt/sources.list.d/cloud-sdk.list
-        - /etc/apt/sources.list.d/google-cloud-ops-agent.list
-        - /etc/apt/sources.list.d/google-cloud-packages-archive-keyring.list
-      ignore_errors: yes  # Ignore errors if files do not exist
-
-    - name: Clean package cache
-      apt:
-        autoclean: yes
-
+    - name: Update sources.list to Debian 11 repositories
+      copy:
+        dest: /etc/apt/sources.list.d/cloud-sdk.list
+        content: |
+          deb http://packages.cloud.google.com/apt cloud-sdk-bookworm main
+          
+    - name: Update sources.list to Debian 11 repositories
+      copy:
+        dest: /etc/apt/sources.list.d/google-cloud-ops-agent.list
+        content: |
+          deb https://packages.cloud.google.com/apt google-cloud-ops-agent-bookworm-all main
+          
+    - name: Update sources.list to Debian 11 repositories
+      copy:
+        dest: /etc/apt/sources.list.d/google-cloud.list
+        content: |
+          deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt google-cloud-packages-archive-keyring-bookworm main
+          
     - name: Update package list
       apt:
         update_cache: yes
 
-    - name: Upgrade to the next release
+    - name: Upgrade to Debian 11
       apt:
         upgrade: dist
-
-    - name: Perform full upgrade
-      apt:
-        full_upgrade: yes
-
-    - name: Remove unnecessary packages
-      apt:
-        autoremove: yes
 
     - name: Reboot the system
       reboot:
