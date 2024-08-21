@@ -8,10 +8,19 @@
         update_cache: yes
         upgrade: dist
 
-    - name: Backup current sources.list and sources.list.d
+    - name: Backup current sources.list
+      command: cp /etc/apt/sources.list /etc/apt/sources.list.backup
+      ignore_errors: yes  # Ignore errors if the file does not exist
+
+    - name: Create backup directory for sources.list.d
+      file:
+        path: /etc/apt/sources.list.d.backup
+        state: directory
+
+    - name: Backup sources.list.d directory
       command: >
-        cp /etc/apt/sources.list /etc/apt/sources.list.backup &&
-        cp -r /etc/apt/sources.list.d /etc/apt/sources.list.d.backup
+        cp -r /etc/apt/sources.list.d/* /etc/apt/sources.list.d.backup/
+      ignore_errors: yes  # Ignore errors if the directory does not exist
 
     - name: Update sources.list to the next release repositories
       copy:
@@ -27,13 +36,12 @@
       lineinfile:
         path: "{{ item }}"
         regexp: '^deb '
-        line: "{{ item_line }}"
+        line: "{{ item | regex_replace('buster', 'bookworm') }}"
       loop:
         - /etc/apt/sources.list.d/cloud-sdk.list
         - /etc/apt/sources.list.d/google-cloud-ops-agent.list
         - /etc/apt/sources.list.d/google-cloud-packages-archive-keyring.list
-      vars:
-        item_line: "{{ item | regex_replace('buster', 'bookworm') }}"
+      ignore_errors: yes  # Ignore errors if files do not exist
 
     - name: Clean package cache
       apt:
