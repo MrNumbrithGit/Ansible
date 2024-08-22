@@ -18,9 +18,10 @@
 
     - name: Update sources.list to Debian 11 repositories
       copy:
-        dest: /etc/apt/sources.list.d/cloud-sdk.list
+        dest: /etc/apt/sources.list.d/gce_sdk.list
         content: |
           deb http://packages.cloud.google.com/apt cloud-sdk-bookworm main
+          deb http://packages.cloud.google.com/apt google-cloud-packages-archive-keyring-bookworm main
           
     - name: Update sources.list to Debian 11 repositories
       copy:
