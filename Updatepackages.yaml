@@ -1,8 +1,15 @@
 ---
-- name: Update APT packages
+- name: Ping hosts and display detailed output
   hosts: all
-  become: yes
   tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
+    - name: Ping the host
+      ping:
+      register: ping_result
+
+    - name: Display detailed ping result
+      debug:
+        msg: |
+          Ping result for host {{ inventory_hostname }}:
+          - Success: {{ ping_result.ping }}
+          - Raw output: {{ ping_result }}
+
