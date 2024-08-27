@@ -1,15 +1,12 @@
 ---
-- name: Ping hosts and display detailed output
+- name: Update all packages on Debian-based systems
   hosts: all
+  become: yes
   tasks:
-    - name: Ping the host
-      ping:
-      register: ping_result
-
-    - name: Display detailed ping result
-      debug:
-        msg: |
-          Ping result for host {{ inventory_hostname }}:
-          - Success: {{ ping_result.ping }}
-          - Raw output: {{ ping_result }}
-
+    - name: Update the apt package index
+      apt:
+        update_cache: yes
+    
+    - name: Upgrade all packages to the latest version
+      apt:
+        upgrade: dist
