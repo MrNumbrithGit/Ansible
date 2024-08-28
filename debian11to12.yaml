@@ -10,30 +10,19 @@
       copy:
         dest: /etc/apt/sources.list
         content: |
-          deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware
-          deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware
-
-          deb https://deb.debian.org/debian-security bookworm-security main contrib non-free
-          deb-src https://deb.debian.org/debian-security bookworm-security main contrib non-free
-
-    - name: Update sources.list to Debian 11 repositories
-      copy:
-        dest: /etc/apt/sources.list.d/gce_sdk.list
-        content: |
-          deb http://packages.cloud.google.com/apt cloud-sdk-bookworm main
-          deb http://packages.cloud.google.com/apt google-cloud-packages-archive-keyring-bookworm main
-          
-    - name: Update sources.list to Debian 11 repositories
-      copy:
-        dest: /etc/apt/sources.list.d/google-cloud-ops-agent.list
-        content: |
-          deb https://packages.cloud.google.com/apt google-cloud-ops-agent-bookworm-all main
+          deb https://deb.debian.org/debian bookworm main
+          deb-src https://deb.debian.org/debian bookworm main
+          deb https://deb.debian.org/debian-security bookworm-security main
+          deb-src https://deb.debian.org/debian-security bookworm-security main
+          deb https://deb.debian.org/debian bookworm-updates main
+          deb-src https://deb.debian.org/debian bookworm-updates main
           
     - name: Update sources.list to Debian 11 repositories
       copy:
         dest: /etc/apt/sources.list.d/google-cloud.list
         content: |
-          deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt google-cloud-packages-archive-keyring-bookworm main
+          deb https://packages.cloud.google.com/apt google-compute-engine-bookworm-stable main
+          deb https://packages.cloud.google.com/apt cloud-sdk-bookworm main
           
     - name: Update package list
       apt:
@@ -45,7 +34,7 @@
 
     - name: Reboot the system
       reboot:
-        reboot_timeout: 300
+        reboot_timeout: 500
 
     - name: Check the Debian version after reboot
       command: lsb_release -a
