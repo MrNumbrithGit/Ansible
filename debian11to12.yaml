@@ -1,12 +1,12 @@
 ---
-- name: Upgrade Debian 10 to Debian 11
+- name: Upgrade Debian 11 to Debian 12
   hosts: all
   become: yes
   tasks:
     - name: Backup current sources.list
       command: cp /etc/apt/sources.list /etc/apt/sources.list.backup
 
-    - name: Update sources.list to Debian 11 repositories
+    - name: Update sources.list to Debian 12 repositories
       copy:
         dest: /etc/apt/sources.list
         content: |
@@ -17,7 +17,7 @@
           deb https://deb.debian.org/debian bookworm-updates main
           deb-src https://deb.debian.org/debian bookworm-updates main
           
-    - name: Update sources.list to Debian 11 repositories
+    - name: Update sources.list to Debian 12 repositories
       copy:
         dest: /etc/apt/sources.list.d/google-cloud.list
         content: |
@@ -28,7 +28,7 @@
       apt:
         update_cache: yes
 
-    - name: Upgrade to Debian 11
+    - name: Upgrade to Debian 12
       apt:
         upgrade: dist
 
