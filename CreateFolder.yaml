@@ -1,0 +1,21 @@
+---
+- name: Create a folder under /home
+  hosts: all
+  gather_facts: no
+  vars_prompt:
+    - name: folder_name
+      prompt: "Enter the name of the folder to create under /home"
+      private: no
+
+  tasks:
+    - name: Create the folder
+      file:
+        path: "/home/{{ folder_name }}"
+        state: directory
+        mode: '0755'
+      register: folder_creation
+
+    - name: Display folder creation status
+      debug:
+        msg: "Folder '{{ folder_name }}' created successfully!"
+      when: folder_creation is changed
