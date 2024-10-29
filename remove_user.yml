@@ -1,0 +1,15 @@
+---
+- name: Remove user
+  hosts: localhost
+  become: all
+  vars_prompt:
+    - name: "username"
+      prompt: "Please enter the username to remove"
+      private: no
+
+  tasks:
+    - name: Remove user and home directory
+      user:
+        name: "{{ username }}"
+        state: absent
+        remove: yes
