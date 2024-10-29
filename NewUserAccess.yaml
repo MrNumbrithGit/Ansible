@@ -1,0 +1,32 @@
+---
+- name: Create user and set up SSH
+  hosts: all
+  become: yes
+  vars:
+    ssh_key: ""
+    username: ""
+
+  tasks:
+    - name: Create user
+      user:
+        name: "{{ username }}"
+        shell: /bin/bash
+        create_home: yes
+        home: "/home/{{ username }}"
+        skeleton: /etc/skel/
+
+    - name: Create .ssh directory for the user
+      file:
+        path: "/home/{{ username }}/.ssh"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0700'
+
+    - name: Create authorized_keys file for the user
+      copy:
+        content: "{{ ssh_key }}"
+        dest: "/home/{{ username }}/.ssh/authorized_keys"
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0600'
