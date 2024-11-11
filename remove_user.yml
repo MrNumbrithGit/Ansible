@@ -1,7 +1,6 @@
----
 - name: Remove user
-  hosts: localhost
-  become: all
+  hosts: all
+  become: true  # Grant sudo/root privileges
   vars_prompt:
     - name: "username"
       prompt: "Please enter the username to remove"
@@ -12,4 +11,4 @@
       user:
         name: "{{ username }}"
         state: absent
-        remove: yes
+        remove: yes  # remove the user's home directory
