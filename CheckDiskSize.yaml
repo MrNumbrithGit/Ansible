@@ -1,0 +1,12 @@
+---
+- name: Run df -kh command to check disk usage
+  hosts: all
+  become: yes  # Use 'become' if you need sudo privileges
+  tasks:
+    - name: Run df -kh command
+      command: df -kh
+      register: disk_usage_output
+
+    - name: Show disk usage output
+      debug:
+        var: disk_usage_output.stdout
